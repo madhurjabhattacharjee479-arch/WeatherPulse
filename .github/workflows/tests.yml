@@ -12,6 +12,24 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: weatherpulse
+          POSTGRES_PASSWORD: ci_test_password
+          POSTGRES_DB: weatherpulse_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U weatherpulse -d weatherpulse_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql+psycopg://weatherpulse:ci_test_password@localhost:5432/weatherpulse_test
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -28,6 +46,9 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
           python -m pip install -e . --no-deps
+
+      - name: Run database migrations
+        run: python -m alembic upgrade head
 
       - name: Run tests
         run: python -m pytest

@@ -90,7 +90,7 @@ class OpenWeatherClient:
                         success=False,
                         retry_count=retry_count,
                         error_type=type(exc).__name__,
-                        error_message=str(exc),
+                        error_message=type(exc).__name__,
                     ),
                 )
             except httpx.RequestError as exc:
@@ -103,7 +103,7 @@ class OpenWeatherClient:
                         success=False,
                         retry_count=retry_count,
                         error_type=type(exc).__name__,
-                        error_message=str(exc),
+                        error_message=type(exc).__name__,
                     ),
                 )
             except WeatherAPIError:
@@ -215,7 +215,7 @@ class OpenWeatherClient:
                 metadata=_failure_metadata(
                     metadata,
                     "WeatherAPIResponseError",
-                    error_message=str(exc),
+                    error_message=type(exc).__name__,
                 ),
             ) from exc
 
@@ -233,7 +233,7 @@ class OpenWeatherClient:
                 metadata=_failure_metadata(
                     metadata,
                     "WeatherAPIResponseError",
-                    error_message=str(exc),
+                    error_message=type(exc).__name__,
                 ),
             ) from exc
 

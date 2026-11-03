@@ -1,8 +1,9 @@
+import logging
 from types import SimpleNamespace
 
 import pytest
 
-from weatherpulse.app import main
+from weatherpulse.app import _configure_logging, main
 from weatherpulse.etl.models import PipelineStatus
 
 
@@ -104,3 +105,33 @@ def test_run_returns_exit_code_for_pipeline_outcome(
     assert pipeline_status.value in captured.out
     assert f"loaded={loaded}" in captured.out
     assert f"failed={failed}" in captured.out
+
+def test_httpx_logging_suppressed_without_disabling_app_logs(
+    monkeypatch,
+    caplog,
+) -> None:
+    monkeypatch.setattr(
+        "weatherpulse.app.load_settings",
+        lambda: SimpleNamespace(log_level="INFO"),
+    )
+
+    httpx_logger = logging.getLogger("httpx")
+    monkeypatch.setattr(httpx_logger, "level", logging.NOTSET)
+
+    caplog.set_level(logging.INFO)
+
+    _configure_logging()
+
+    assert httpx_logger.level == logging.WARNING
+
+    httpx_logger.info(
+        "HTTP Request: GET https://api.example.com/weather?appid=%s",
+        "test-api-key-secret",
+    )
+
+    logging.getLogger("weatherpulse.test").info(
+        "ETL extraction completed successfully"
+    )
+
+    assert "test-api-key-secret" not in caplog.text
+    assert "ETL extraction completed successfully" in caplog.text

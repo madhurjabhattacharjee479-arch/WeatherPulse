@@ -1,3 +1,4 @@
+
 """Command-line entry point for WeatherPulse."""
 
 from __future__ import annotations
@@ -30,6 +31,9 @@ def _configure_logging() -> None:
     level = getattr(logging, settings.log_level.upper(), None)
     if not isinstance(level, int):
         level = logging.INFO
+
+    # Prevent HTTPX from logging request URLs containing API credentials.
+    logging.getLogger("httpx").setLevel(logging.WARNING)
 
     logging.basicConfig(
         level=level,
@@ -101,7 +105,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="weatherpulse",
         description="WeatherPulse weather data pipeline",
-    )
+)
     subparsers = parser.add_subparsers(dest="command")
     subparsers.add_parser("status", help="show application foundation status")
     subparsers.add_parser("run", help="execute the weather ETL pipeline")
